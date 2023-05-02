@@ -1,1 +1,1 @@
-export 'controllers/blackjack.controller.dart';
+export 'controllers/blackjack.dart';

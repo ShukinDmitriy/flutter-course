@@ -1,4 +1,4 @@
-import '../enums/decide.enum.dart';
+import '../enums/decide.dart';
 import 'card.dart';
 import 'person.dart';
 

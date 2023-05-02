@@ -1,12 +1,12 @@
-import '../enums/decide.enum.dart';
+import '../enums/decide.dart';
 import '../models/card-deck.dart';
-import '../enums/card-value.enum.dart';
+import '../enums/card-value.dart';
 import '../models/dealer.dart';
 import '../models/person.dart';
 import '../models/user.dart';
-import '../services/console-display.service.dart';
+import '../services/console-display.dart';
 
-class BlackjackController {
+class Blackjack {
 
   ConsoleDisplayService displayService = ConsoleDisplayService();
 

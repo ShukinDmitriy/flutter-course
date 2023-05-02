@@ -2,7 +2,7 @@ import 'lib/index.dart' as blackjack;
 
 int main() {
   try {
-    blackjack.BlackjackController controller =  blackjack.BlackjackController();
+    blackjack.Blackjack controller =  blackjack.Blackjack();
 
     while (controller.game()) {
 

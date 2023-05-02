@@ -1,4 +1,4 @@
-import '../enums/card-value.enum.dart';
+import '../enums/card-value.dart';
 import 'card.dart';
 
 class Hand {

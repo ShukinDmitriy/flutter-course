@@ -1,5 +1,5 @@
-import '../enums/card-value.enum.dart';
-import '../enums/suit.enum.dart';
+import '../enums/card-value.dart';
+import '../enums/suit.dart';
 import 'card.dart';
 
 class CardDeck {
