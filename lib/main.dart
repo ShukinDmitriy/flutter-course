@@ -45,7 +45,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _controller = TextEditingController();
-  final _dbRef = FirebaseDatabase.instance.ref("messages");
+  final DatabaseService _databaseService = DatabaseService();
 
   @override
   Widget build(BuildContext context) {
@@ -54,69 +54,55 @@ class _MyHomePageState extends State<MyHomePage> {
           title: Text(widget.title),
         ),
         body: StreamBuilder(
-          stream: _dbRef.onValue,
+          stream: _databaseService.messagesStream,
           builder: (context, snapshot) {
-            List<Message> messageList = [];
+            final messageList = snapshot.data;
 
-            if (snapshot.hasData &&
-                snapshot.data != null &&
-                (snapshot.data!).snapshot.value != null) {
-              final firebaseMessages = Map<dynamic, dynamic>.from(
-                  (snapshot.data!).snapshot.value as Map<dynamic, dynamic>);
-
-              firebaseMessages.forEach((key, value) {
-                final currentMessage = Map<String, dynamic>.from(value);
-                messageList.add(Message.fromMap(currentMessage));
-              });
-
-              return Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: ListView.builder(
-                    reverse: true,
-                    itemCount: messageList.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  messageList[index].userId.substring(0, 8),
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(StringToHex.toColor(
-                                          messageList[index].userId))),
+            if (messageList != null && messageList.isNotEmpty) {
+              return ListView.builder(
+                  padding: const EdgeInsets.all(16.0),
+                  reverse: true,
+                  itemCount: messageList.length,
+                  itemBuilder: (context, index) {
+                    final currentMessage = messageList[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                currentMessage.userId.substring(0, 8),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(StringToHex.toColor(
+                                        currentMessage.userId))),
+                              ),
+                              const SizedBox(
+                                width: 6.0,
+                              ),
+                              Text(
+                                timeago.format(currentMessage.timestamp),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.black38,
+                                  fontSize: 13.0,
                                 ),
-                                const SizedBox(
-                                  width: 6.0,
-                                ),
-                                Text(
-                                  timeago.format(
-                                      DateTime.fromMillisecondsSinceEpoch(
-                                          int.parse(
-                                              messageList[index].timestamp))),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w400,
-                                    color: Colors.black38,
-                                    fontSize: 13.0,
-                                  ),
-                                )
-                              ],
-                            ),
-                            const SizedBox(
-                              height: 8.0,
-                            ),
-                            Text(
-                              messageList[index].text,
-                              style: const TextStyle(fontSize: 16.0),
-                            )
-                          ],
-                        ),
-                      );
-                    }),
-              );
+                              )
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 8.0,
+                          ),
+                          Text(
+                            currentMessage.text,
+                            style: const TextStyle(fontSize: 16.0),
+                          )
+                        ],
+                      ),
+                    );
+                  });
             } else {
               return const Text('No messages');
             }

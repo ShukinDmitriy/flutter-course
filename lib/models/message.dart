@@ -1,20 +1,20 @@
 class Message {
  final String userId;
  final String text;
- final String timestamp;
+ final DateTime timestamp;
 
  Message({required this.userId, required this.text, required this.timestamp});
 
  Message.fromJson(Map<String, dynamic> json)
   : userId = json['userId'],
     text = json['text'],
-    timestamp = json['timestamp'];
+    timestamp = DateTime.fromMicrosecondsSinceEpoch(json['timestamp']);
 
  Map<String, dynamic> toJson() =>
-     {'userId': userId, 'text': text, 'timestamp': timestamp};
+     {'userId': userId, 'text': text, 'timestamp': timestamp.microsecondsSinceEpoch};
 
  Message.fromMap(Map<String, dynamic> data)
   : userId = data['userId'],
     text = data['text'],
-    timestamp = data['timestamp'];
+    timestamp = DateTime.fromMicrosecondsSinceEpoch(int.parse(data['timestamp']));
 }
