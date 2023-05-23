@@ -8,13 +8,13 @@ class Message {
  Message.fromJson(Map<String, dynamic> json)
   : userId = json['userId'],
     text = json['text'],
-    timestamp = DateTime.fromMicrosecondsSinceEpoch(json['timestamp']);
+    timestamp = DateTime.fromMillisecondsSinceEpoch(json['timestamp']);
 
  Map<String, dynamic> toJson() =>
-     {'userId': userId, 'text': text, 'timestamp': timestamp.microsecondsSinceEpoch};
+     {'userId': userId, 'text': text, 'timestamp': timestamp.millisecondsSinceEpoch};
 
  Message.fromMap(Map<String, dynamic> data)
   : userId = data['userId'],
     text = data['text'],
-    timestamp = DateTime.fromMicrosecondsSinceEpoch(int.parse(data['timestamp']));
+    timestamp = DateTime.fromMillisecondsSinceEpoch(data['timestamp']);
 }

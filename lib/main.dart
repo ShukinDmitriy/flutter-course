@@ -77,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Color(StringToHex.toColor(
-                                        currentMessage.userId))),
+                                        currentMessage.userId.substring(0, 6)))),
                               ),
                               const SizedBox(
                                 width: 6.0,
@@ -139,5 +139,11 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           ),
         ));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }
