@@ -3,10 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:string_to_hex/string_to_hex.dart';
 
-class Messages extends StatelessWidget {
-  final DatabaseService _databaseService = DatabaseService();
+class Messages extends StatefulWidget {
+  const Messages({super.key});
 
-  Messages({super.key});
+  @override
+  State<Messages> createState() => _MessagesState();
+}
+
+class _MessagesState extends State<Messages> {
+  final DatabaseService _databaseService = DatabaseService();
 
   @override
   Widget build(BuildContext context) {
