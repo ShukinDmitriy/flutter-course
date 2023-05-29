@@ -15,23 +15,13 @@ class DatabaseService {
               Map<dynamic, dynamic>.from(value as Map<dynamic, dynamic>);
 
           firebaseMessages.forEach((key, value) {
-            final currentMessage = Map<String, dynamic>.from(value);
-            messageList.add(Message.fromMap(currentMessage));
+            final currentMessage = Map<String, Object?>.from(value);
+            messageList.add(Message.fromJson(currentMessage));
           });
         }
 
         return messageList;
       });
-
-  Future getData() async {
-    final ref = FirebaseDatabase.instance.ref();
-    final snapshot = await ref.child('message').get();
-    if (snapshot.exists) {
-      print(snapshot.value);
-    } else {
-      print('No data available.');
-    }
-  }
 
   Future sendMessage(text) async {
     DatabaseReference ref = FirebaseDatabase.instance.ref("messages");
