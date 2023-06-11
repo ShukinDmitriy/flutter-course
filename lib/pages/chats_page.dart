@@ -1,3 +1,4 @@
+import 'package:chat_app/components/chat_item.dart';
 import 'package:flutter/material.dart';
 
 class ChatsPage extends StatefulWidget {
@@ -14,33 +15,13 @@ class _ChatsPageState extends State<ChatsPage> {
       appBar: AppBar(title: const Text('Chats'),),
       body: ListView(
         children: const <Widget>[
-          ListTile(
-            leading: CircleAvatar(child: Text('JD')),
-            title: Text('John Doe'),
-            subtitle: Text('Hello!'),
-            trailing: Text('31.05.2023'),
-          ),
+          ChatItem(leading: 'JD', title: 'John Doe', subtitle: 'Hello!', date: '31.05.2023'),
           Divider(height: 0),
-          ListTile(
-            leading: CircleAvatar(child: Text('JD')),
-            title: Text('John Doe'),
-            subtitle: Text('Hello!'),
-            trailing: Text('31.05.2023'),
-          ),
+          ChatItem(leading: 'JD', title: 'John Doe', subtitle: 'Hello!', date: '31.05.2023'),
           Divider(height: 0),
-          ListTile(
-            leading: CircleAvatar(child: Text('JD')),
-            title: Text('John Doe'),
-            subtitle: Text('Hello!'),
-            trailing: Text('31.05.2023'),
-          ),
+          ChatItem(leading: 'JD', title: 'John Doe', subtitle: 'Hello!', date: '31.05.2023'),
           Divider(height: 0),
-          ListTile(
-            leading: CircleAvatar(child: Text('JD')),
-            title: Text('John Doe'),
-            subtitle: Text('Hello!'),
-            trailing: Text('31.05.2023'),
-          ),
+          ChatItem(leading: 'JD', title: 'John Doe', subtitle: 'Hello!', date: '31.05.2023'),
           Divider(height: 0),
         ],
       ),

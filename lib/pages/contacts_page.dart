@@ -1,6 +1,7 @@
 import 'package:chat_app/services/user_service.dart';
 import 'package:flutter/material.dart';
 
+import '../components/contact_item.dart';
 import '../models/user.dart';
 
 class ContactsPage extends StatefulWidget {
@@ -31,30 +32,7 @@ class _ContactsPageState extends State<ContactsPage> {
                   itemBuilder: (context, index) {
                     final User currentUser = userList[index];
 
-                    Widget leading;
-                    if (currentUser.photoUrl == null) {
-                      final String abbr = currentUser.displayName
-                          .split(' ')
-                          .map((String e) => e[0].toUpperCase())
-                          .take(2)
-                          .join('');
-                      leading = CircleAvatar(
-                        radius: 32.0,
-                        child: Text(abbr),
-                        backgroundColor: Colors.transparent,
-                      );
-                    } else {
-                      leading = CircleAvatar(
-                        radius: 32.0,
-                        backgroundImage: NetworkImage(currentUser.photoUrl!),
-                        backgroundColor: Colors.transparent,
-                      );
-                    }
-
-                    return ListTile(
-                      leading: leading,
-                      title: Text(currentUser.displayName),
-                    );
+                    return ContactItem(user: currentUser);
                   });
             } else {
               return const Text('No contacts');
