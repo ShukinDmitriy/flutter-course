@@ -2,7 +2,7 @@ import 'package:chat_app/models/message.dart';
 import 'package:chat_app/services/user_service.dart';
 import 'package:firebase_database/firebase_database.dart';
 
-class DatabaseService {
+class MessageService {
   final UserService _userService = UserService();
 
   Stream<List<Message>> get messagesStream =>

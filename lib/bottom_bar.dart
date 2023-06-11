@@ -1,4 +1,4 @@
-import 'package:chat_app/services/database_service.dart';
+import 'package:chat_app/services/message_service.dart';
 import 'package:flutter/material.dart';
 
 class BottomBar extends StatefulWidget {
@@ -36,7 +36,7 @@ class _BottomBarState extends State<BottomBar> {
           ),
           IconButton(
             onPressed: () {
-              DatabaseService().sendMessage(_controller.text);
+              MessageService().sendMessage(_controller.text);
               _controller.text = '';
             },
             icon: const Icon(Icons.send),

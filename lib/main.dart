@@ -22,7 +22,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Chat App',
       theme: ThemeData(
-        primarySwatch: Colors.teal,
+        colorSchemeSeed: const Color(0xff6750a4),
+        useMaterial3: true,
       ),
       home: const HomePage(title: 'Chat'),
     );
