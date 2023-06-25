@@ -1,5 +1,8 @@
+import 'package:chat_app/services/message_service.dart';
+import 'package:chat_app/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:get_it/get_it.dart';
 import 'firebase_options.dart';
 import 'home_page.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,6 +13,10 @@ void main() async {
     name: "Chat App",
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  final getIt = GetIt.instance;
+  getIt.registerSingleton<MessageService>(MessageService(), signalsReady: true);
+  getIt.registerSingleton<UserService>(UserService(), signalsReady: true);
 
   runApp(const MyApp());
 }

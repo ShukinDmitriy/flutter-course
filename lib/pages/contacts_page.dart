@@ -1,5 +1,6 @@
 import 'package:chat_app/services/user_service.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 
 import '../components/contact_item.dart';
 import '../models/user.dart';
@@ -12,7 +13,7 @@ class ContactsPage extends StatefulWidget {
 }
 
 class _ContactsPageState extends State<ContactsPage> {
-  final UserService _userService = UserService();
+  final getIt = GetIt.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +22,7 @@ class _ContactsPageState extends State<ContactsPage> {
         title: const Text('Contacts'),
       ),
       body: StreamBuilder(
-          stream: _userService.usersStream,
+          stream: getIt<UserService>().usersStream,
           initialData: [],
           builder: (ctx, snapshot) {
             final userList = snapshot.data;

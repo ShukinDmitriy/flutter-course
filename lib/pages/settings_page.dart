@@ -1,5 +1,6 @@
 import 'package:chat_app/services/user_service.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../models/user.dart';
@@ -13,7 +14,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   final TextEditingController _controller = TextEditingController();
-  final UserService _userService = UserService();
+  final getIt = GetIt.instance;
 
   bool _isEdit = false;
   bool _isAvatar = false;
@@ -33,7 +34,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   _loadUser() async {
-    final User user = await _userService.getCurrentUser();
+    final User user = await getIt<UserService>().getCurrentUser();
 
     if (user.photoUrl != null) {
       setState(() {
@@ -52,7 +53,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _done() async {
-    await _userService.setDisplayName(_controller.text);
+    await getIt<UserService>().setDisplayName(_controller.text);
 
     setState(() {
       _isEdit = false;
@@ -69,7 +70,7 @@ class _SettingsPageState extends State<SettingsPage> {
       return;
     }
 
-    await _userService.updatePhotoUrl(image.path, image.name);
+    await getIt<UserService>().updatePhotoUrl(image.path, image.name);
   }
 
   @override

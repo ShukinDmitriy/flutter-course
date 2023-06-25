@@ -1,5 +1,6 @@
 import 'package:chat_app/services/message_service.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:string_to_hex/string_to_hex.dart';
 
@@ -11,12 +12,12 @@ class Messages extends StatefulWidget {
 }
 
 class _MessagesState extends State<Messages> {
-  final MessageService _messageService = MessageService();
+  final getIt = GetIt.instance;
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-      stream: _messageService.messagesStream,
+      stream: getIt<MessageService>().messagesStream,
       builder: (context, snapshot) {
         final messageList = snapshot.data;
 
