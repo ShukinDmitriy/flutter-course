@@ -36,7 +36,9 @@ class _ContactsPageState extends State<ContactsPage> {
                     return ContactItem(user: currentUser);
                   });
             } else {
-              return const Text('No contacts');
+              return const Center(
+                child: Text('No contacts'),
+              );
             }
           }),
     );
