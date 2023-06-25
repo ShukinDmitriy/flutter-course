@@ -1,3 +1,4 @@
+import 'package:chat_app/components/web_view_container.dart';
 import 'package:chat_app/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -115,6 +116,15 @@ class _SettingsPageState extends State<SettingsPage> {
                     _displayName,
                     style: const TextStyle(fontSize: 24.0),
                   ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const WebViewContainer()));
+              },
+              child: const Text('WebView'),
+            ),
           ],
         ),
       ),

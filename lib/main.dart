@@ -36,7 +36,9 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         textTheme: GoogleFonts.spaceGroteskTextTheme(textTheme),
       ),
-      home: const HomePage(title: 'Chat'),
+      routes: {
+        '/': (context) => const HomePage(title: 'Chat'),
+      },
     );
   }
 }
