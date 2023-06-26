@@ -46,6 +46,9 @@ dependencies:
   json_annotation: ^4.8.1
   image_picker: ^0.8.7+5
   google_fonts: ^4.0.4
+  get_it: ^7.6.0
+  webview_flutter: ^4.2.2
+  uni_links: ^0.5.1
 
 dev_dependencies:
   flutter_test:
