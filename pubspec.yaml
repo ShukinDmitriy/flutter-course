@@ -80,6 +80,23 @@ flutter:
    - assets/images/avatar.png
   #   - images/a_dot_ham.jpeg
 
+#  fonts:
+#    - family: MTSText
+#      fonts:
+#        - asset: fonts/Text/MTSText-Regular.ttf
+#          weight: 400
+#    - family: MTSCompact
+#      fonts:
+#        - asset: fonts/Compact/MTSCompact-Regular.ttf
+#          weight: 400
+#        - asset: fonts/Compact/MTSCompact-Medium.ttf
+#          weight: 500
+#        - asset: fonts/Compact/MTSCompact-Bold.ttf
+#          weight: 700
+#    - family: MTSWide
+#      fonts:
+#        - asset: fonts/Wide/MTSWide-Medium.ttf
+#          weight: 500
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

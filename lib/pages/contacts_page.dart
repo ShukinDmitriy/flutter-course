@@ -1,3 +1,4 @@
+import 'package:chat_app/components/shimmer.dart';
 import 'package:chat_app/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -36,8 +37,12 @@ class _ContactsPageState extends State<ContactsPage> {
                     return ContactItem(user: currentUser);
                   });
             } else {
-              return const Center(
-                child: Text('No contacts'),
+              return Shimmer(
+                child: ListView.builder(
+                    itemCount: 3,
+                    itemBuilder: (context, index) {
+                      return const ContactItem(isShimmer: true);
+                    }),
               );
             }
           }),
