@@ -1,6 +1,6 @@
-import 'package:chat_app/services/message_service.dart';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
+
+import 'send_button.dart';
 
 class BottomBar extends StatefulWidget {
   const BottomBar({super.key});
@@ -11,7 +11,6 @@ class BottomBar extends StatefulWidget {
 
 class _BottomBarState extends State<BottomBar> {
   final TextEditingController _controller = TextEditingController();
-  final getIt = GetIt.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -36,12 +35,8 @@ class _BottomBarState extends State<BottomBar> {
               ),
             ),
           ),
-          IconButton(
-            onPressed: () {
-              getIt<MessageService>().sendMessage(_controller.text);
-              _controller.text = '';
-            },
-            icon: const Icon(Icons.send),
+          SendButton(
+            controller: _controller,
           )
         ],
       ),
