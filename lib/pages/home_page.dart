@@ -8,16 +8,16 @@ import 'package:flutter/material.dart';
 import 'package:uni_links/uni_links.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.title});
+  static const routeName = '/home';
 
-  final String title;
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  int currentPageIndex = 2;
+  int currentPageIndex = 1;
 
   StreamSubscription? _sub;
 
