@@ -1,19 +1,19 @@
 import 'dart:io';
 
-import 'package:chat_app/models/user.dart';
+import 'package:chat_app/models/user.dart' as app_user;
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uuid/uuid.dart';
 
 class UserService {
-  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  final Reference _firebaseRef = FirebaseStorage.instance.ref();
+  UserService(this.firebaseDatabase);
 
-  Stream<List<User>> get usersStream =>
-      FirebaseDatabase.instance.ref("users").onValue.map((e) {
+  final FirebaseDatabase firebaseDatabase;
+
+  Stream<List<app_user.User>> get usersStream =>
+      firebaseDatabase.ref("users").onValue.map((e) {
         final value = e.snapshot.value;
-        final List<User> userList = [];
+        final List<app_user.User> userList = [];
 
         if (value != null) {
           final firebaseUsers =
@@ -21,83 +21,97 @@ class UserService {
 
           firebaseUsers.forEach((key, value) {
             final user = Map<String, Object?>.from(value);
-            userList.add(User.fromJson(user));
+            userList.add(app_user.User.fromJson(user));
           });
         }
 
         return userList;
       });
 
-  Future<String> getUuid() async {
-    final SharedPreferences prefs = await _prefs;
+  String getUuid() {
+    final user = getCurrentUser();
 
-    String? uuid = prefs.getString('uuid');
-
-    if (uuid == null) {
-      const uuidHelper = Uuid();
-      uuid = uuidHelper.v4();
-      prefs.setString('uuid', uuid);
-
-      await saveUser();
-    }
-
-    return uuid;
+    return user.id;
   }
 
-  Future<String> getDisplayName() async {
-    final SharedPreferences prefs = await _prefs;
+  Future<void> updateUserDisplayName(String displayName) async {
+    final firebaseUser = _getFirebaseUser();
 
-    String? displayName = prefs.getString('displayName');
+    await firebaseUser.updateDisplayName(displayName);
 
-    return displayName ?? 'no_name';
+    await addOrUpdateUser();
   }
 
-  Future<void> setDisplayName(String displayName) async {
-    final SharedPreferences prefs = await _prefs;
+  Future<String> getUserName(String userId) async {
+    final dataSnapshot = await firebaseDatabase
+        .ref()
+        .child('users')
+        .child(userId)
+        .child('displayName')
+        .get();
 
-    prefs.setString('displayName', displayName);
-
-    await saveUser();
+    return dataSnapshot.value.toString();
   }
 
-  Future<String?> getPhotoUrl() async {
-    final SharedPreferences prefs = await _prefs;
+  Future<app_user.User> getUser(String userId) async {
+    final userSnapshot = await firebaseDatabase
+        .ref()
+        .child('users')
+        .child(userId)
+        .get();
+    final userMap = Map<String, dynamic>.from(userSnapshot.value as Map);
+    final user = app_user.User(
+      id: userId,
+      displayName: userMap['displayName'],
+      photoUrl: userMap['photoUrl'],
+    );
 
-    String? photoUrl = prefs.getString('photoUrl');
-
-    return photoUrl;
+    return user;
   }
 
-  Future<void> setPhotoUrl(String? photoUrl) async {
-    final SharedPreferences prefs = await _prefs;
+  String? getPhotoUrl() {
+    final user = getCurrentUser();
 
-    photoUrl != null
-        ? prefs.setString('photoUrl', photoUrl)
-        : prefs.remove('photoUrl');
-
-    await saveUser();
+    return user.photoUrl;
   }
 
-  Future<void> updatePhotoUrl(String imagePath, String imageName) async {
+  Future<void> updateUserPhotoUrl(String imagePath, String imageName) async {
     var imageFile = File(imagePath);
-    Reference ref = _firebaseRef.child("images").child(imageName);
+    Reference ref = FirebaseStorage.instance.ref().child("images").child(imageName);
     await ref.putFile(imageFile);
 
     final downloadUrl = await ref.getDownloadURL();
 
-    await setPhotoUrl(downloadUrl);
+    final firebaseUser = _getFirebaseUser();
+
+    await firebaseUser.updatePhotoURL(downloadUrl);
+
+    await addOrUpdateUser();
   }
 
-  Future<User> getCurrentUser() async {
-    return User(
-        id: await getUuid(),
-        displayName: await getDisplayName(),
-        photoUrl: await getPhotoUrl());
+  User _getFirebaseUser() {
+    final firebaseUser = FirebaseAuth.instance.currentUser;
+
+    if (firebaseUser == null) {
+      throw Future.error('user is not authorized');
+    }
+
+    return firebaseUser;
   }
 
-  Future<void> saveUser() async {
-    final User user = await getCurrentUser();
-    DatabaseReference ref = FirebaseDatabase.instance.ref("users/${user.id}");
+  app_user.User getCurrentUser() {
+    final firebaseUser = _getFirebaseUser();
+
+    return app_user.User(
+        id: firebaseUser.uid,
+        displayName: firebaseUser.displayName ?? 'no name',
+        photoUrl: firebaseUser.photoURL);
+  }
+
+  Future<void> addOrUpdateUser() async {
+    final user = getCurrentUser();
+
+    DatabaseReference ref = firebaseDatabase.ref("users/${user.id}");
 
     await ref.set(user.toJson());
   }

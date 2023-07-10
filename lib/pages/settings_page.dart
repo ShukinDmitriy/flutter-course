@@ -1,10 +1,11 @@
-import 'package:chat_app/components/web_view_container.dart';
 import 'package:chat_app/services/user_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../models/user.dart';
+import '../models/user.dart' as app_user;
+import 'share_profile.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -21,6 +22,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _isAvatar = false;
   String? _avatarURL;
   String _displayName = 'no_name';
+  String _id = '';
 
   @override
   void initState() {
@@ -34,8 +36,8 @@ class _SettingsPageState extends State<SettingsPage> {
     super.dispose();
   }
 
-  _loadUser() async {
-    final User user = await getIt<UserService>().getCurrentUser();
+  _loadUser() {
+    app_user.User user = getIt<UserService>().getCurrentUser();
 
     if (user.photoUrl != null) {
       setState(() {
@@ -44,6 +46,7 @@ class _SettingsPageState extends State<SettingsPage> {
       });
     }
     _displayName = user.displayName;
+    _id = user.id;
     _controller.text = _displayName;
   }
 
@@ -54,7 +57,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _done() async {
-    await getIt<UserService>().setDisplayName(_controller.text);
+    await getIt<UserService>().updateUserDisplayName(_controller.text);
 
     setState(() {
       _isEdit = false;
@@ -71,7 +74,22 @@ class _SettingsPageState extends State<SettingsPage> {
       return;
     }
 
-    await getIt<UserService>().updatePhotoUrl(image.path, image.name);
+    await getIt<UserService>().updateUserPhotoUrl(image.path, image.name);
+
+    _loadUser();
+  }
+
+  Future<void> _signOut() async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.pushNamed(context, '/sign-in');
+  }
+
+  _shareProfile() async {
+    Navigator.pushNamed(
+      context,
+      ShareProfile.routeName,
+      arguments: ShareArguments(_id),
+    );
   }
 
   @override
@@ -116,14 +134,21 @@ class _SettingsPageState extends State<SettingsPage> {
                     _displayName,
                     style: const TextStyle(fontSize: 24.0),
                   ),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const WebViewContainer()));
-              },
-              child: const Text('WebView'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: _shareProfile,
+                  child: const Text('Share profile'),
+                ),
+                const SizedBox(
+                  width: 20.0,
+                ),
+                TextButton(
+                  onPressed: _signOut,
+                  child: const Text('Sign out'),
+                )
+              ],
             ),
           ],
         ),

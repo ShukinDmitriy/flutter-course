@@ -1,13 +1,15 @@
 import 'package:chat_app/models/message.dart';
 import 'package:chat_app/services/user_service.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:get_it/get_it.dart';
 
 class MessageService {
-  final getIt = GetIt.instance;
+  final FirebaseDatabase firebaseDatabase;
+  final UserService userService;
+
+  MessageService(this.firebaseDatabase, this.userService);
 
   Stream<List<Message>> get messagesStream =>
-      FirebaseDatabase.instance.ref("messages").onValue.map((e) {
+      firebaseDatabase.ref("messages").onValue.map((e) {
         final value = e.snapshot.value;
         final List<Message> messageList = [];
 
@@ -19,14 +21,16 @@ class MessageService {
             final currentMessage = Map<String, Object?>.from(value);
             messageList.add(Message.fromJson(currentMessage));
           });
+
+          messageList.sort((a, b) => b.timestamp.compareTo(a.timestamp));
         }
 
         return messageList;
       });
 
   Future sendMessage(text) async {
-    DatabaseReference ref = FirebaseDatabase.instance.ref("messages");
-    final userId = await getIt<UserService>().getUuid();
+    DatabaseReference ref = firebaseDatabase.ref("messages");
+    final userId = userService.getUuid();
     final message =
         Message(userId: userId, text: text, timestamp: DateTime.now());
 

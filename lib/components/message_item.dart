@@ -12,7 +12,6 @@ class MessageItem extends StatelessWidget {
   const MessageItem({this.message, this.isShimmer = false, Key? key})
       : super(key: key);
 
-  // 0xffe1e1e1
   @override
   Widget build(BuildContext context) {
     if (message == null) {
@@ -74,8 +73,7 @@ class MessageItem extends StatelessWidget {
                 message!.userId.substring(0, 8),
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Color(
-                        StringToHex.toColor(message!.userId.substring(0, 6)))),
+                    color: Color(StringToHex.toColor(StringToHex.toHexString(message!.userId.substring(0, 6))))),
               ),
               const SizedBox(
                 width: 6.0,
