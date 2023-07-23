@@ -1,12 +1,12 @@
 import 'package:chat_app/models/user.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:chat_app/services/user_service.dart';
+import 'package:chat_app/services/network_user_service.dart';
 import 'package:firebase_database_mocks/firebase_database_mocks.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 void main() {
   late FirebaseDatabase firebaseDatabase;
-  late UserService userService;
+  late NetworkUserService userService;
 
   const fakeUserId = 'fakeUserId';
   const fakeUserName = 'fakeUserName';
@@ -24,7 +24,7 @@ void main() {
 
   setUp(() {
     firebaseDatabase = MockFirebaseDatabase.instance;
-    userService = UserService(firebaseDatabase);
+    userService = NetworkUserService(firebaseDatabase);
   });
 
   group('UserService', () {

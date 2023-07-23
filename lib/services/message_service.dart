@@ -1,10 +1,10 @@
 import 'package:chat_app/models/message.dart';
-import 'package:chat_app/services/user_service.dart';
+import 'package:chat_app/services/network_user_service.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 class MessageService {
   final FirebaseDatabase firebaseDatabase;
-  final UserService userService;
+  final NetworkUserService userService;
 
   MessageService(this.firebaseDatabase, this.userService);
 
