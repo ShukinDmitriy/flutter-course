@@ -1,6 +1,7 @@
 import 'package:chat_app/services/message_service.dart';
 import 'package:chat_app/services/user_service.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get_it/get_it.dart';
@@ -18,6 +19,17 @@ void main() async {
     name: "Chat App",
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  NotificationSettings settings = await messaging.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
+  final fcmToken = await messaging.getToken();
+  print(fcmToken);
 
   FirebaseUIAuth.configureProviders([
     PhoneAuthProvider(),

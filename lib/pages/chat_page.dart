@@ -3,6 +3,29 @@ import 'package:chat_app/components/messages.dart';
 import 'package:flutter/material.dart';
 
 class ChatPage extends StatefulWidget {
+  static const routeName = '/chat';
+
+  static Route createRoute(String title) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => ChatPage(
+        title: title,
+      ),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(0.0, 1.0);
+        const end = Offset.zero;
+        const curve = Curves.ease;
+
+        final tween =
+        Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      },
+    );
+  }
+
   final String title;
 
   const ChatPage({required this.title, Key? key}) : super(key: key);

@@ -14,7 +14,7 @@ class _ChatsPageState extends State<ChatsPage> {
   Widget build(BuildContext context) {
     onTap(String title) {
       return () {
-        Navigator.of(context).push(_createRoute(title));
+        Navigator.of(context).push(ChatPage.createRoute(title));
       };
     }
 
@@ -64,25 +64,4 @@ class _ChatsPageState extends State<ChatsPage> {
       ),
     );
   }
-}
-
-Route _createRoute(String title) {
-  return PageRouteBuilder(
-    pageBuilder: (context, animation, secondaryAnimation) => ChatPage(
-      title: title,
-    ),
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      const begin = Offset(0.0, 1.0);
-      const end = Offset.zero;
-      const curve = Curves.ease;
-
-      final tween =
-          Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-
-      return SlideTransition(
-        position: animation.drive(tween),
-        child: child,
-      );
-    },
-  );
 }
