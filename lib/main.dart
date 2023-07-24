@@ -1,16 +1,19 @@
-import 'package:chat_app/services/message_service.dart';
-import 'package:chat_app/services/user_service.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get_it/get_it.dart';
+import 'data/repositories/user_repository.dart';
 import 'firebase_options.dart';
-import 'pages/home_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide PhoneAuthProvider;
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 
+import 'pages/home_page.dart';
 import 'pages/share_profile.dart';
+import 'services/db_user_service.dart';
+import 'services/message_service.dart';
+import 'services/network_user_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,15 +22,30 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  NotificationSettings settings = await messaging.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
+  final fcmToken = await messaging.getToken();
+  print(fcmToken);
+
   FirebaseUIAuth.configureProviders([
     PhoneAuthProvider(),
   ]);
 
   final getIt = GetIt.instance;
   final FirebaseDatabase firebaseDatabase = FirebaseDatabase.instance;
-  final UserService userService = UserService(firebaseDatabase);
-  getIt.registerSingleton<UserService>(userService, signalsReady: true);
-  getIt.registerSingleton<MessageService>(MessageService(firebaseDatabase, userService), signalsReady: true);
+  // firebaseDatabase.setPersistenceEnabled(true);
+  final DbUserService dbUserService = DbUserService();
+  final NetworkUserService networkUserService = NetworkUserService(firebaseDatabase);
+  getIt.registerSingleton<DbUserService>(dbUserService, signalsReady: true);
+  getIt.registerSingleton<NetworkUserService>(networkUserService, signalsReady: true);
+  getIt.registerSingleton<UserRepository>(UserRepository(networkUserService: networkUserService, dbUserService: dbUserService), signalsReady: true);
+  getIt.registerSingleton<MessageService>(MessageService(firebaseDatabase, networkUserService), signalsReady: true);
 
   runApp(const MyApp());
 }

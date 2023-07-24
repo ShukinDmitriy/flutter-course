@@ -1,4 +1,4 @@
-import 'package:chat_app/services/user_service.dart';
+import 'package:chat_app/services/network_user_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -41,7 +41,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   _loadUser() {
-    app_user.User user = getIt<UserService>().getCurrentUser();
+    app_user.User user = getIt<NetworkUserService>().getCurrentUser();
 
     if (user.photoUrl != null) {
       setState(() {
@@ -61,7 +61,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _done() async {
-    await getIt<UserService>().updateUserDisplayName(_controller.text);
+    await getIt<NetworkUserService>().updateUserDisplayName(_controller.text);
 
     setState(() {
       _isEdit = false;
@@ -78,7 +78,7 @@ class _SettingsPageState extends State<SettingsPage> {
       return;
     }
 
-    await getIt<UserService>().updateUserPhotoUrl(image.path, image.name);
+    await getIt<NetworkUserService>().updateUserPhotoUrl(image.path, image.name);
 
     _loadUser();
   }
