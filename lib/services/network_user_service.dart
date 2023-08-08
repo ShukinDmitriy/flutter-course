@@ -75,7 +75,7 @@ class NetworkUserService {
     return user.photoUrl;
   }
 
-  Future<void> updateUserPhotoUrl(String imagePath, String imageName) async {
+  Future<String> updateUserPhotoUrl(String imagePath, String imageName) async {
     var imageFile = File(imagePath);
     Reference ref = FirebaseStorage.instance.ref().child("images").child(imageName);
     await ref.putFile(imageFile);
@@ -87,6 +87,8 @@ class NetworkUserService {
     await firebaseUser.updatePhotoURL(downloadUrl);
 
     await addOrUpdateUser();
+
+    return downloadUrl;
   }
 
   User _getFirebaseUser() {

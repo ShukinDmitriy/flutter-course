@@ -8,52 +8,52 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../models/user.dart' as app_user;
 import '../notifiers/settings_notifier.dart';
 import 'share_profile.dart';
 
-class SettingsPage extends ConsumerWidget {
+class SettingsPage extends ConsumerStatefulWidget {
+  const SettingsPage({Key? key}) : super(key: key);
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final getIt = GetIt.instance;
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
+}
 
-    final TextEditingController controller = TextEditingController();
-    // final TextEditingController controller = ref.watch(settingsNotifierProvider.select((settings) => settings.controller));
+class _SettingsPageState extends ConsumerState<SettingsPage> {
+  final TextEditingController _controller = TextEditingController();
+  final getIt = GetIt.instance;
 
-    final isEdit = ref.watch(settingsNotifierProvider.select((settings) => settings.isEdit));
-    final isAvatar = ref.watch(settingsNotifierProvider.select((settings) => settings.isAvatar));
-    final avatarURL = ref.watch(settingsNotifierProvider.select((settings) => settings.avatarURL));
-    final displayName = ref.watch(settingsNotifierProvider.select((settings) => settings.displayName));
-    final position = ref.watch(settingsNotifierProvider.select((settings) => settings.position));
-    final id = ref.watch(settingsNotifierProvider.select((settings) => settings.id));
+  late bool _isEdit;
+  late bool _isAvatar;
+  late String? _avatarURL;
+  late String _displayName;
+  late String _id;
+  late Position? _position;
 
-    void edit() {
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _isEdit = ref.watch(settingsNotifierProvider.select((settings) => settings.isEdit));
+    _isAvatar = ref.watch(settingsNotifierProvider.select((settings) => settings.isAvatar));
+    _avatarURL = ref.watch(settingsNotifierProvider.select((settings) => settings.avatarURL));
+    _displayName = ref.watch(settingsNotifierProvider.select((settings) => settings.displayName));
+    _controller.text = _displayName;
+    _id = ref.watch(settingsNotifierProvider.select((settings) => settings.id));
+    _position = ref.watch(settingsNotifierProvider.select((settings) => settings.position));
+
+    void _edit() {
       ref.read(settingsNotifierProvider.notifier).setIsEdit(true);
     }
 
-    void done() async {
-      print(controller.text);
+    void _done() async {
       ref.read(settingsNotifierProvider.notifier).setIsEdit(false);
-      ref.read(settingsNotifierProvider.notifier).setDisplayName(controller.text);
+      ref.read(settingsNotifierProvider.notifier).setDisplayName(_controller.text);
 
-      print(ref.read(settingsNotifierProvider).displayName);
-
-      await getIt<NetworkUserService>().updateUserDisplayName(controller.text);
-    }
-
-    void loadUser() {
-      app_user.User user = getIt<NetworkUserService>().getCurrentUser();
-
-      if (user.photoUrl != null) {
-        ref.read(settingsNotifierProvider.notifier).setIsAvatar(true);
-        ref.read(settingsNotifierProvider.notifier).setAvatarURL(user.photoUrl);
-      }
-
-      // print(user.displayName);
-
-      ref.read(settingsNotifierProvider.notifier).setDisplayName(user.displayName);
-      ref.read(settingsNotifierProvider.notifier).setId(user.id);
-      controller.text = user.displayName.toString();
+      await getIt<NetworkUserService>().updateUserDisplayName(_controller.text);
     }
 
     void pickImage() async {
@@ -65,12 +65,24 @@ class SettingsPage extends ConsumerWidget {
         return;
       }
 
-      await getIt<NetworkUserService>().updateUserPhotoUrl(image.path, image.name);
-
-      loadUser();
+      final downloadUrl = await getIt<NetworkUserService>().updateUserPhotoUrl(image.path, image.name);
+      ref.read(settingsNotifierProvider.notifier).setAvatarURL(downloadUrl);
     }
 
-    void determinePosition() async {
+    Future<void> _signOut() async {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushNamed(context, '/sign-in');
+    }
+
+    _shareProfile() async {
+      Navigator.pushNamed(
+        context,
+        ShareProfile.routeName,
+        arguments: ShareArguments(_id),
+      );
+    }
+
+    void _determinePosition() async {
       bool serviceEnabled;
       LocationPermission permission;
 
@@ -93,33 +105,16 @@ class SettingsPage extends ConsumerWidget {
       }
 
       final position = await Geolocator.getCurrentPosition();
-      // ref.read(settingsProvider.notifier).update(newPosition: position);
+      ref.read(settingsNotifierProvider.notifier).setPosition(position);
     }
-
-    void shareProfile() async {
-      // Navigator.pushNamed(
-      //   context,
-      //   ShareProfile.routeName,
-      //   arguments: ShareArguments(id),
-      // );
-    }
-
-    Future<void> signOut() async {
-      await FirebaseAuth.instance.signOut();
-      Navigator.pushNamed(context, '/sign-in');
-    }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      loadUser();
-    });
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
         actions: [
-          isEdit
-              ? TextButton(onPressed: done, child: const Text('Done'))
-              : TextButton(onPressed: edit, child: const Text('Edit')),
+          _isEdit
+              ? TextButton(onPressed: _done, child: const Text('Done'))
+              : TextButton(onPressed: _edit, child: const Text('Edit')),
         ],
       ),
       body: Container(
@@ -132,8 +127,8 @@ class SettingsPage extends ConsumerWidget {
               onTap: pickImage,
               child: CircleAvatar(
                 radius: 32.0,
-                backgroundImage: (isAvatar && avatarURL != null)
-                    ? NetworkImage(avatarURL) as ImageProvider<Object>
+                backgroundImage: (_isAvatar && _avatarURL != null)
+                    ? NetworkImage(_avatarURL!) as ImageProvider<Object>
                     : const AssetImage('assets/images/avatar.png'),
                 backgroundColor: Colors.transparent,
               ),
@@ -141,30 +136,30 @@ class SettingsPage extends ConsumerWidget {
             const SizedBox(
               height: 16.0,
             ),
-            isEdit
+            _isEdit
                 ? Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 64.0),
-              child: TextField(
-                controller: controller,
-                style: const TextStyle(fontSize: 16.0),
-              ),
-            )
+                    padding: const EdgeInsets.symmetric(horizontal: 64.0),
+                    child: TextField(
+                      controller: _controller,
+                      style: const TextStyle(fontSize: 16.0),
+                    ),
+                  )
                 : Text(
-              displayName.toString(),
-              style: const TextStyle(fontSize: 24.0),
-            ),
+                    _displayName,
+                    style: const TextStyle(fontSize: 24.0),
+                  ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextButton(
-                  onPressed: shareProfile,
+                  onPressed: _shareProfile,
                   child: const Text('Share profile'),
                 ),
                 const SizedBox(
                   width: 20.0,
                 ),
                 TextButton(
-                  onPressed: signOut,
+                  onPressed: _signOut,
                   child: const Text('Sign out'),
                 )
               ],
@@ -175,7 +170,7 @@ class SettingsPage extends ConsumerWidget {
                 ElevatedButton(
                   onPressed: () {
                     try {
-                      determinePosition();
+                      _determinePosition();
                     } catch (e) {
                       print(e);
                     }
@@ -184,36 +179,36 @@ class SettingsPage extends ConsumerWidget {
                 ),
               ],
             ),
-            position != null
+            _position != null
                 ? Flexible(
-              child: FlutterMap(
-                options: MapOptions(
-                  center:
-                  LatLng(position.latitude, position.longitude),
-                  zoom: 5,
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate:
-                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName:
-                    'dev.fleaflet.flutter_map.example',
-                  ),
-                  MarkerLayer(markers: [
-                    Marker(
-                        width: 40,
-                        height: 40,
-                        point: LatLng(
-                            position.latitude, position.longitude),
-                        builder: (ctx) =>
-                        const Icon(Icons.location_pin, size: 40),
-                        key: const ValueKey('marker')),
-                  ]),
-                ],
-              ),
-            )
+                    child: FlutterMap(
+                      options: MapOptions(
+                        center:
+                            LatLng(_position!.latitude, _position!.longitude),
+                        zoom: 5,
+                      ),
+                      children: [
+                        TileLayer(
+                          urlTemplate:
+                              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          userAgentPackageName:
+                              'dev.fleaflet.flutter_map.example',
+                        ),
+                        MarkerLayer(markers: [
+                          Marker(
+                              width: 40,
+                              height: 40,
+                              point: LatLng(
+                                  _position!.latitude, _position!.longitude),
+                              builder: (ctx) =>
+                                  const Icon(Icons.location_pin, size: 40),
+                              key: const ValueKey('marker')),
+                        ]),
+                      ],
+                    ),
+                  )
                 : const Text(
-                'Click on the button to determine the coordinates'),
+                    'Click on the button to determine the coordinates'),
           ],
         ),
       ),
