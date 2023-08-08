@@ -1,22 +1,23 @@
 import 'package:chat_app/components/shimmer.dart';
 import 'package:chat_app/services/message_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
 
 import 'message_item.dart';
 
-class Messages extends StatefulWidget {
-  const Messages({super.key});
-
+class Messages extends ConsumerWidget {
   @override
-  State<Messages> createState() => _MessagesState();
-}
-
-class _MessagesState extends State<Messages> {
-  final getIt = GetIt.instance;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final getIt = GetIt.instance;
+    // final exampleProvider = ref.watch(ExampleProvider);
+    //
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   // ref.read(ExampleProvider.notifier).state++;
+    // });
+    //
+    // print(exampleProvider.toString());
+    
     return StreamBuilder(
       stream: getIt<MessageService>().messagesStream,
       builder: (context, snapshot) {

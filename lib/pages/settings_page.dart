@@ -1,6 +1,7 @@
 import 'package:chat_app/services/network_user_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
@@ -8,131 +9,117 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../models/user.dart' as app_user;
+import '../notifiers/settings_notifier.dart';
 import 'share_profile.dart';
 
-class SettingsPage extends StatefulWidget {
-  const SettingsPage({Key? key}) : super(key: key);
-
+class SettingsPage extends ConsumerWidget {
   @override
-  State<SettingsPage> createState() => _SettingsPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final getIt = GetIt.instance;
 
-class _SettingsPageState extends State<SettingsPage> {
-  final TextEditingController _controller = TextEditingController();
-  final getIt = GetIt.instance;
+    final TextEditingController controller = TextEditingController();
+    // final TextEditingController controller = ref.watch(settingsNotifierProvider.select((settings) => settings.controller));
 
-  bool _isEdit = false;
-  bool _isAvatar = false;
-  String? _avatarURL;
-  String _displayName = 'no_name';
-  String _id = '';
-  Position? _position;
+    final isEdit = ref.watch(settingsNotifierProvider.select((settings) => settings.isEdit));
+    final isAvatar = ref.watch(settingsNotifierProvider.select((settings) => settings.isAvatar));
+    final avatarURL = ref.watch(settingsNotifierProvider.select((settings) => settings.avatarURL));
+    final displayName = ref.watch(settingsNotifierProvider.select((settings) => settings.displayName));
+    final position = ref.watch(settingsNotifierProvider.select((settings) => settings.position));
+    final id = ref.watch(settingsNotifierProvider.select((settings) => settings.id));
 
-  @override
-  void initState() {
-    super.initState();
-    _loadUser();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  _loadUser() {
-    app_user.User user = getIt<NetworkUserService>().getCurrentUser();
-
-    if (user.photoUrl != null) {
-      setState(() {
-        _isAvatar = true;
-        _avatarURL = user.photoUrl;
-      });
-    }
-    _displayName = user.displayName;
-    _id = user.id;
-    _controller.text = _displayName;
-  }
-
-  void _edit() {
-    setState(() {
-      _isEdit = true;
-    });
-  }
-
-  void _done() async {
-    await getIt<NetworkUserService>().updateUserDisplayName(_controller.text);
-
-    setState(() {
-      _isEdit = false;
-      _displayName = _controller.text;
-    });
-  }
-
-  void pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    // Pick an image.
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-    if (image == null) {
-      return;
+    void edit() {
+      ref.read(settingsNotifierProvider.notifier).setIsEdit(true);
     }
 
-    await getIt<NetworkUserService>().updateUserPhotoUrl(image.path, image.name);
+    void done() async {
+      print(controller.text);
+      ref.read(settingsNotifierProvider.notifier).setIsEdit(false);
+      ref.read(settingsNotifierProvider.notifier).setDisplayName(controller.text);
 
-    _loadUser();
-  }
+      print(ref.read(settingsNotifierProvider).displayName);
 
-  Future<void> _signOut() async {
-    await FirebaseAuth.instance.signOut();
-    Navigator.pushNamed(context, '/sign-in');
-  }
-
-  _shareProfile() async {
-    Navigator.pushNamed(
-      context,
-      ShareProfile.routeName,
-      arguments: ShareArguments(_id),
-    );
-  }
-
-  void _determinePosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error('Location services are disabled.');
+      await getIt<NetworkUserService>().updateUserDisplayName(controller.text);
     }
 
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied');
+    void loadUser() {
+      app_user.User user = getIt<NetworkUserService>().getCurrentUser();
+
+      if (user.photoUrl != null) {
+        ref.read(settingsNotifierProvider.notifier).setIsAvatar(true);
+        ref.read(settingsNotifierProvider.notifier).setAvatarURL(user.photoUrl);
       }
+
+      // print(user.displayName);
+
+      ref.read(settingsNotifierProvider.notifier).setDisplayName(user.displayName);
+      ref.read(settingsNotifierProvider.notifier).setId(user.id);
+      controller.text = user.displayName.toString();
     }
 
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error(
-          'Location permissions are permanently denied, we cannot request permissions.');
+    void pickImage() async {
+      final ImagePicker picker = ImagePicker();
+      // Pick an image.
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+      if (image == null) {
+        return;
+      }
+
+      await getIt<NetworkUserService>().updateUserPhotoUrl(image.path, image.name);
+
+      loadUser();
     }
 
-    final position = await Geolocator.getCurrentPosition();
-    setState(() {
-      _position = position;
+    void determinePosition() async {
+      bool serviceEnabled;
+      LocationPermission permission;
+
+      serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        return Future.error('Location services are disabled.');
+      }
+
+      permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          return Future.error('Location permissions are denied');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        return Future.error(
+            'Location permissions are permanently denied, we cannot request permissions.');
+      }
+
+      final position = await Geolocator.getCurrentPosition();
+      // ref.read(settingsProvider.notifier).update(newPosition: position);
+    }
+
+    void shareProfile() async {
+      // Navigator.pushNamed(
+      //   context,
+      //   ShareProfile.routeName,
+      //   arguments: ShareArguments(id),
+      // );
+    }
+
+    Future<void> signOut() async {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushNamed(context, '/sign-in');
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadUser();
     });
-  }
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
         actions: [
-          _isEdit
-              ? TextButton(onPressed: _done, child: const Text('Done'))
-              : TextButton(onPressed: _edit, child: const Text('Edit')),
+          isEdit
+              ? TextButton(onPressed: done, child: const Text('Done'))
+              : TextButton(onPressed: edit, child: const Text('Edit')),
         ],
       ),
       body: Container(
@@ -145,8 +132,8 @@ class _SettingsPageState extends State<SettingsPage> {
               onTap: pickImage,
               child: CircleAvatar(
                 radius: 32.0,
-                backgroundImage: (_isAvatar && _avatarURL != null)
-                    ? NetworkImage(_avatarURL!) as ImageProvider<Object>
+                backgroundImage: (isAvatar && avatarURL != null)
+                    ? NetworkImage(avatarURL) as ImageProvider<Object>
                     : const AssetImage('assets/images/avatar.png'),
                 backgroundColor: Colors.transparent,
               ),
@@ -154,30 +141,30 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(
               height: 16.0,
             ),
-            _isEdit
+            isEdit
                 ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 64.0),
-                    child: TextField(
-                      controller: _controller,
-                      style: const TextStyle(fontSize: 16.0),
-                    ),
-                  )
+              padding: const EdgeInsets.symmetric(horizontal: 64.0),
+              child: TextField(
+                controller: controller,
+                style: const TextStyle(fontSize: 16.0),
+              ),
+            )
                 : Text(
-                    _displayName,
-                    style: const TextStyle(fontSize: 24.0),
-                  ),
+              displayName.toString(),
+              style: const TextStyle(fontSize: 24.0),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextButton(
-                  onPressed: _shareProfile,
+                  onPressed: shareProfile,
                   child: const Text('Share profile'),
                 ),
                 const SizedBox(
                   width: 20.0,
                 ),
                 TextButton(
-                  onPressed: _signOut,
+                  onPressed: signOut,
                   child: const Text('Sign out'),
                 )
               ],
@@ -188,7 +175,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ElevatedButton(
                   onPressed: () {
                     try {
-                      _determinePosition();
+                      determinePosition();
                     } catch (e) {
                       print(e);
                     }
@@ -197,36 +184,36 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ],
             ),
-            _position != null
+            position != null
                 ? Flexible(
-                    child: FlutterMap(
-                      options: MapOptions(
-                        center:
-                            LatLng(_position!.latitude, _position!.longitude),
-                        zoom: 5,
-                      ),
-                      children: [
-                        TileLayer(
-                          urlTemplate:
-                              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                          userAgentPackageName:
-                              'dev.fleaflet.flutter_map.example',
-                        ),
-                        MarkerLayer(markers: [
-                          Marker(
-                              width: 40,
-                              height: 40,
-                              point: LatLng(
-                                  _position!.latitude, _position!.longitude),
-                              builder: (ctx) =>
-                                  const Icon(Icons.location_pin, size: 40),
-                              key: const ValueKey('marker')),
-                        ]),
-                      ],
-                    ),
-                  )
+              child: FlutterMap(
+                options: MapOptions(
+                  center:
+                  LatLng(position.latitude, position.longitude),
+                  zoom: 5,
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate:
+                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName:
+                    'dev.fleaflet.flutter_map.example',
+                  ),
+                  MarkerLayer(markers: [
+                    Marker(
+                        width: 40,
+                        height: 40,
+                        point: LatLng(
+                            position.latitude, position.longitude),
+                        builder: (ctx) =>
+                        const Icon(Icons.location_pin, size: 40),
+                        key: const ValueKey('marker')),
+                  ]),
+                ],
+              ),
+            )
                 : const Text(
-                    'Click on the button to determine the coordinates'),
+                'Click on the button to determine the coordinates'),
           ],
         ),
       ),

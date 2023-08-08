@@ -2,6 +2,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
 import 'data/repositories/user_repository.dart';
 import 'firebase_options.dart';
@@ -9,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide PhoneAuthProvider;
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 
+import 'observers/logger.dart';
 import 'pages/home_page.dart';
 import 'pages/share_profile.dart';
 import 'services/db_user_service.dart';
@@ -47,7 +49,10 @@ void main() async {
   getIt.registerSingleton<UserRepository>(UserRepository(networkUserService: networkUserService, dbUserService: dbUserService), signalsReady: true);
   getIt.registerSingleton<MessageService>(MessageService(firebaseDatabase, networkUserService), signalsReady: true);
 
-  runApp(const MyApp());
+  runApp(ProviderScope(
+      // observers: [Logger()],
+      child: MyApp())
+  );
 }
 
 class MyApp extends StatelessWidget {

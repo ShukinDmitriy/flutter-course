@@ -1,46 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
 
 import '../services/message_service.dart';
 
-class SendButton extends StatefulWidget {
-  final TextEditingController controller;
-
-  const SendButton({required this.controller, Key? key}) : super(key: key);
-
-  @override
-  State<SendButton> createState() => _SendButtonState();
-}
-
-class _SendButtonState extends State<SendButton> {
+class SendButton extends ConsumerWidget {
   bool isSending = false;
   final getIt = GetIt.instance;
 
   onPressed() async {
-    if (widget.controller.text == '') {
-      return;
-    }
-
-    setState(() {
-      isSending = true;
-    });
-
-    await getIt<MessageService>().sendMessage(widget.controller.text);
-    widget.controller.text = '';
-
-    setState(() {
-      isSending = false;
-    });
+    // if (widget.controller.text == '') {
+    //   return;
+    // }
+    //
+    // setState(() {
+    //   isSending = true;
+    // });
+    //
+    // await getIt<MessageService>().sendMessage(widget.controller.text);
+    // widget.controller.text = '';
+    //
+    // setState(() {
+    //   isSending = false;
+    // });
   }
 
   void onChangeAnimation() {
-    setState(() {
-      isSending = !isSending;
-    });
+    // setState(() {
+    //   isSending = !isSending;
+    // });
   }
 
+  final TextEditingController controller;
+
+  SendButton({required this.controller, Key? key}) : super(key: key);
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final sendButton = IconButton(
       key: const ValueKey('sendButton'),
       onPressed: onPressed,
@@ -58,4 +54,5 @@ class _SendButtonState extends State<SendButton> {
       child: isSending ? waitButton : sendButton,
     );
   }
+
 }

@@ -71,9 +71,9 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: <Widget>[
-          const ContactsPage(),
+          ContactsPage(),
           const ChatsPage(),
-          const SettingsPage(),
+          SettingsPage(),
         ][currentPageIndex],
         bottomNavigationBar: NavigationBar(
           onDestinationSelected: (int index) {

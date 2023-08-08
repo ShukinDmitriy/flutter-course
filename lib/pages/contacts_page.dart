@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
 
 import '../components/shimmer.dart';
@@ -6,18 +7,13 @@ import '../components/contact_item.dart';
 import '../data/repositories/user_repository.dart';
 import '../models/user.dart';
 
-class ContactsPage extends StatefulWidget {
-  const ContactsPage({Key? key}) : super(key: key);
-
+class ContactsPage extends ConsumerWidget {
   @override
-  State<ContactsPage> createState() => _ContactsPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final getIt = GetIt.instance;
+    // final exampleProvider = ref.watch(ExampleProvider);
+    // print(exampleProvider.toString());
 
-class _ContactsPageState extends State<ContactsPage> {
-  final getIt = GetIt.instance;
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Contacts'),
