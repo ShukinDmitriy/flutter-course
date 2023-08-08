@@ -22,12 +22,68 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   final TextEditingController _controller = TextEditingController();
   final getIt = GetIt.instance;
 
-  late bool _isEdit;
-  late bool _isAvatar;
-  late String? _avatarURL;
-  late String _displayName;
-  late String _id;
-  late Position? _position;
+  void _edit() {
+    ref.read(settingsNotifierProvider.notifier).setIsEdit(true);
+  }
+
+  void _done() async {
+    ref.read(settingsNotifierProvider.notifier).setIsEdit(false);
+    ref.read(settingsNotifierProvider.notifier).setDisplayName(_controller.text);
+
+    await getIt<NetworkUserService>().updateUserDisplayName(_controller.text);
+  }
+
+  void pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    // Pick an image.
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image == null) {
+      return;
+    }
+
+    final downloadUrl = await getIt<NetworkUserService>().updateUserPhotoUrl(image.path, image.name);
+    ref.read(settingsNotifierProvider.notifier).setAvatarURL(downloadUrl);
+  }
+
+  Future<void> _signOut() async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.pushNamed(context, '/sign-in');
+  }
+
+  _shareProfile() async {
+    Navigator.pushNamed(
+      context,
+      ShareProfile.routeName,
+      arguments: ShareArguments(ref.read(settingsNotifierProvider).id),
+    );
+  }
+
+  void _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
+
+    final position = await Geolocator.getCurrentPosition();
+    ref.read(settingsNotifierProvider.notifier).setPosition(position);
+  }
 
   @override
   void dispose() {
@@ -37,76 +93,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    _isEdit = ref.watch(settingsNotifierProvider.select((settings) => settings.isEdit));
-    _isAvatar = ref.watch(settingsNotifierProvider.select((settings) => settings.isAvatar));
-    _avatarURL = ref.watch(settingsNotifierProvider.select((settings) => settings.avatarURL));
-    _displayName = ref.watch(settingsNotifierProvider.select((settings) => settings.displayName));
+    bool _isEdit = ref.watch(settingsNotifierProvider.select((settings) => settings.isEdit));
+    bool _isAvatar = ref.watch(settingsNotifierProvider.select((settings) => settings.isAvatar));
+    String? _avatarURL = ref.watch(settingsNotifierProvider.select((settings) => settings.avatarURL));
+    String _displayName = ref.watch(settingsNotifierProvider.select((settings) => settings.displayName));
     _controller.text = _displayName;
-    _id = ref.watch(settingsNotifierProvider.select((settings) => settings.id));
-    _position = ref.watch(settingsNotifierProvider.select((settings) => settings.position));
-
-    void _edit() {
-      ref.read(settingsNotifierProvider.notifier).setIsEdit(true);
-    }
-
-    void _done() async {
-      ref.read(settingsNotifierProvider.notifier).setIsEdit(false);
-      ref.read(settingsNotifierProvider.notifier).setDisplayName(_controller.text);
-
-      await getIt<NetworkUserService>().updateUserDisplayName(_controller.text);
-    }
-
-    void pickImage() async {
-      final ImagePicker picker = ImagePicker();
-      // Pick an image.
-      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-      if (image == null) {
-        return;
-      }
-
-      final downloadUrl = await getIt<NetworkUserService>().updateUserPhotoUrl(image.path, image.name);
-      ref.read(settingsNotifierProvider.notifier).setAvatarURL(downloadUrl);
-    }
-
-    Future<void> _signOut() async {
-      await FirebaseAuth.instance.signOut();
-      Navigator.pushNamed(context, '/sign-in');
-    }
-
-    _shareProfile() async {
-      Navigator.pushNamed(
-        context,
-        ShareProfile.routeName,
-        arguments: ShareArguments(_id),
-      );
-    }
-
-    void _determinePosition() async {
-      bool serviceEnabled;
-      LocationPermission permission;
-
-      serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        return Future.error('Location services are disabled.');
-      }
-
-      permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          return Future.error('Location permissions are denied');
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        return Future.error(
-            'Location permissions are permanently denied, we cannot request permissions.');
-      }
-
-      final position = await Geolocator.getCurrentPosition();
-      ref.read(settingsNotifierProvider.notifier).setPosition(position);
-    }
+    Position? _position = ref.watch(settingsNotifierProvider.select((settings) => settings.position));
 
     return Scaffold(
       appBar: AppBar(
