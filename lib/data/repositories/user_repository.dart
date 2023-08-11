@@ -11,12 +11,28 @@ class UserRepository {
 
   UserRepository({required NetworkUserService networkUserService, required DbUserService dbUserService}) : _dbUserService = dbUserService, _networkUserService = networkUserService;
 
-  Future<List<User>> getUsers() async {
-    final dbUsers = await _dbUserService.getUsers();
+  Future<List<User>> getUsers({resetDb = false}) async {
+    final dbUsers = await getUsersFromDb();
     if (dbUsers.isNotEmpty) {
-      return Future.value(dbUsers.map((dbUser) => UserMapper.toUserFromDbUser(dbUser)).toList());
+      return dbUsers;
     }
 
+    final fbUsers = await getUsersFromFirebase();
+
+    await _dbUserService.clearUsers();
+    for (var user in fbUsers) {
+      _dbUserService.addUser(UserMapper.toDbUserFromUser(user));
+    }
+
+    return fbUsers;
+  }
+
+  Future<List<User>> getUsersFromDb() async {
+    final dbUsers = await _dbUserService.getUsers();
+    return Future.value(dbUsers.map((dbUser) => UserMapper.toUserFromDbUser(dbUser)).toList());
+  }
+
+  Future<List<User>> getUsersFromFirebase() async {
     late ConnectivityResult result;
     late bool hasConnection;
     try {
@@ -27,17 +43,9 @@ class UserRepository {
     }
 
     if (!hasConnection) {
-      return Future.value(dbUsers.map((dbUser) => UserMapper.toUserFromDbUser(dbUser)).toList());
+      return Future.value([]);
     }
 
-    final users = _networkUserService.usersStream.firstWhere((element) => true);
-
-    users.then((users) => {
-      users.forEach((user) {
-        _dbUserService.addUser(UserMapper.toDbUserFromUser(user));
-      })
-    });
-
-    return users;
+    return (await _networkUserService.usersStream.firstWhere((element) => true)).toList();
   }
 }

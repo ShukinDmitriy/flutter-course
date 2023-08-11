@@ -34,4 +34,8 @@ class DbUserService {
   Future<List<DbUser>> getUsers() async {
     return await _isar.dbUsers.where().findAll();
   }
+
+  Future<void> clearUsers() async {
+    return await _isar.dbUsers.clear();
+  }
 }
