@@ -36,7 +36,7 @@ void main() {
     });
 
     test('getUser should return user', () async {
-      final userFromFakeDatabase = await userService.getUser(fakeUserId);
+      final userFromFakeDatabase = await userService.getUserByUid(fakeUserId);
 
       expect(
           userFromFakeDatabase,

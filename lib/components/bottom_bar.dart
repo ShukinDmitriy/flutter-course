@@ -1,50 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../notifiers/chat_input_notifier.dart';
 import 'send_button.dart';
 
-class BottomBar extends ConsumerWidget {
-  final TextEditingController _controller = TextEditingController();
+class BottomBar extends ConsumerStatefulWidget {
+  final String chatUid;
+
+  const BottomBar({required this.chatUid, super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final chatProvider = StateProvider<int>((ref) => 0, name: 'chatProvider');
-
-    return Padding(
-      padding: MediaQuery.of(context).viewInsets,
-      child: Row(
-        children: [
-          Expanded(
-            child: BottomAppBar(
-              child: TextField(
-                controller: _controller,
-                style: const TextStyle(fontSize: 16.0),
-                decoration: const InputDecoration(
-                  labelText: 'Message',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(
-                    vertical: 8.0,
-                    horizontal: 8.0,
-                  ),
-                  floatingLabelBehavior: FloatingLabelBehavior.never,
-                ),
-              ),
-            ),
-          ),
-          SendButton(
-            controller: _controller,
-          )
-        ],
-      ),
-    );
-  }
+  ConsumerState<BottomBar> createState() => _BottomBarState();
 }
 
-class _BottomBarState extends State<BottomBar> {
-  final TextEditingController _controller = TextEditingController();
-
+class _BottomBarState extends ConsumerState<BottomBar> {
   @override
   Widget build(BuildContext context) {
+    final TextEditingController controller = ref.watch(
+        chatInputNotifierProvider.select((chatInput) => chatInput.controller));
+
     return Padding(
       padding: MediaQuery.of(context).viewInsets,
       child: Row(
@@ -52,7 +26,7 @@ class _BottomBarState extends State<BottomBar> {
           Expanded(
             child: BottomAppBar(
               child: TextField(
-                controller: _controller,
+                controller: controller,
                 style: const TextStyle(fontSize: 16.0),
                 decoration: const InputDecoration(
                   labelText: 'Message',
@@ -66,17 +40,9 @@ class _BottomBarState extends State<BottomBar> {
               ),
             ),
           ),
-          SendButton(
-            controller: _controller,
-          )
+          SendButton(chatUid: widget.chatUid)
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 }

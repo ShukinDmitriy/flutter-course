@@ -23,21 +23,21 @@ class MyApp extends StatelessWidget {
         initialStory: 'Screens/Scaffold',
         plugins: _plugins,
         stories: [
-          Story(
-              name: 'Chat item',
-              builder: (context) {
-                final leading =
-                    context.knobs.text(label: 'Leading', initial: 'JD');
-                final title =
-                    context.knobs.text(label: 'Title', initial: 'John Doe');
-                final subtitle = context.knobs
-                    .text(label: 'Subtitle', initial: 'Hello!');
-                final date = context.knobs
-                    .text(label: 'Date', initial: '31.05.2023');
-
-                return Center(
-                    child: ChatItem(leading: leading,title: title, subtitle: subtitle, date: date));
-              }),
+          // Story(
+          //     name: 'Chat item',
+          //     builder: (context) {
+          //       final leading =
+          //           context.knobs.text(label: 'Leading', initial: 'JD');
+          //       final title =
+          //           context.knobs.text(label: 'Title', initial: 'John Doe');
+          //       final subtitle = context.knobs
+          //           .text(label: 'Subtitle', initial: 'Hello!');
+          //       final date = context.knobs
+          //           .text(label: 'Date', initial: '31.05.2023');
+          //
+          //       return Center(
+          //           child: ChatItem(leading: leading,title: title, subtitle: subtitle, date: date));
+          //     }),
           Story(
               name: 'News card',
               builder: (context) {

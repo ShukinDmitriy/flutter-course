@@ -1,4 +1,3 @@
-import 'package:chat_app/services/network_user_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +7,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../components/user_avatar.dart';
 import '../notifiers/settings_notifier.dart';
+import '../services/network_user_service.dart';
 import 'share_profile.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -28,7 +29,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   void _done() async {
     ref.read(settingsNotifierProvider.notifier).setIsEdit(false);
-    ref.read(settingsNotifierProvider.notifier).setDisplayName(_controller.text);
+    ref
+        .read(settingsNotifierProvider.notifier)
+        .setDisplayName(_controller.text);
 
     await getIt<NetworkUserService>().updateUserDisplayName(_controller.text);
   }
@@ -42,7 +45,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       return;
     }
 
-    final downloadUrl = await getIt<NetworkUserService>().updateUserPhotoUrl(image.path, image.name);
+    final downloadUrl = await getIt<NetworkUserService>()
+        .updateUserPhotoUrl(image.path, image.name);
     ref.read(settingsNotifierProvider.notifier).setAvatarURL(downloadUrl);
   }
 
@@ -93,12 +97,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    bool _isEdit = ref.watch(settingsNotifierProvider.select((settings) => settings.isEdit));
-    bool _isAvatar = ref.watch(settingsNotifierProvider.select((settings) => settings.isAvatar));
-    String? _avatarURL = ref.watch(settingsNotifierProvider.select((settings) => settings.avatarURL));
-    String _displayName = ref.watch(settingsNotifierProvider.select((settings) => settings.displayName));
+    bool _isEdit = ref
+        .watch(settingsNotifierProvider.select((settings) => settings.isEdit));
+    String? _avatarURL = ref.watch(
+        settingsNotifierProvider.select((settings) => settings.avatarURL));
+    String _displayName = ref.watch(
+        settingsNotifierProvider.select((settings) => settings.displayName));
     _controller.text = _displayName;
-    Position? _position = ref.watch(settingsNotifierProvider.select((settings) => settings.position));
+    Position? _position = ref.watch(
+        settingsNotifierProvider.select((settings) => settings.position));
 
     return Scaffold(
       appBar: AppBar(
@@ -117,13 +124,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           children: [
             GestureDetector(
               onTap: pickImage,
-              child: CircleAvatar(
-                radius: 32.0,
-                backgroundImage: (_isAvatar && _avatarURL != null)
-                    ? NetworkImage(_avatarURL!) as ImageProvider<Object>
-                    : const AssetImage('assets/images/avatar.png'),
-                backgroundColor: Colors.transparent,
-              ),
+              child: UserAvatar(
+                  displayName: _displayName,
+                  avatarUrl: _avatarURL,
+                  isShowDefaultAvatar: true),
             ),
             const SizedBox(
               height: 16.0,

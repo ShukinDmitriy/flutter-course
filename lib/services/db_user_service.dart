@@ -21,7 +21,8 @@ class DbUserService {
   }
 
   Future<void> addUser(DbUser user) async {
-    final issetUser = await _isar.dbUsers.filter().userIdEqualTo(user.userId).findFirst();
+    final issetUser =
+        await _isar.dbUsers.filter().userIdEqualTo(user.userId).findFirst();
     if (issetUser != null) {
       return;
     }
@@ -36,6 +37,8 @@ class DbUserService {
   }
 
   Future<void> clearUsers() async {
-    return await _isar.dbUsers.clear();
+    await _isar.writeTxn(() async {
+      await _isar.dbUsers.clear();
+    });
   }
 }

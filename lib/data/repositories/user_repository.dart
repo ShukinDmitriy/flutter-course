@@ -9,11 +9,20 @@ class UserRepository {
   final NetworkUserService _networkUserService;
   final DbUserService _dbUserService;
 
-  UserRepository({required NetworkUserService networkUserService, required DbUserService dbUserService}) : _dbUserService = dbUserService, _networkUserService = networkUserService;
+  UserRepository(
+      {required NetworkUserService networkUserService,
+      required DbUserService dbUserService})
+      : _dbUserService = dbUserService,
+        _networkUserService = networkUserService;
+
+  Future<User> getUserByUid(String uid) async {
+    final users = await getUsers();
+    return users.firstWhere((user) => user.id == uid);
+  }
 
   Future<List<User>> getUsers({resetDb = false}) async {
     final dbUsers = await getUsersFromDb();
-    if (dbUsers.isNotEmpty) {
+    if (dbUsers.isNotEmpty && !resetDb) {
       return dbUsers;
     }
 
@@ -29,7 +38,8 @@ class UserRepository {
 
   Future<List<User>> getUsersFromDb() async {
     final dbUsers = await _dbUserService.getUsers();
-    return Future.value(dbUsers.map((dbUser) => UserMapper.toUserFromDbUser(dbUser)).toList());
+    return Future.value(
+        dbUsers.map((dbUser) => UserMapper.toUserFromDbUser(dbUser)).toList());
   }
 
   Future<List<User>> getUsersFromFirebase() async {
@@ -39,6 +49,7 @@ class UserRepository {
       result = await Connectivity().checkConnectivity();
       hasConnection = result != ConnectivityResult.none;
     } catch (e) {
+      print(e);
       hasConnection = true;
     }
 
@@ -46,6 +57,6 @@ class UserRepository {
       return Future.value([]);
     }
 
-    return (await _networkUserService.usersStream.firstWhere((element) => true)).toList();
+    return (await _networkUserService.getContactUsers()).toList();
   }
 }
