@@ -1,72 +1,39 @@
-import 'package:chat_app/services/network_user_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../models/user.dart' as app_user;
+import '../components/user_avatar.dart';
+import '../notifiers/settings_notifier.dart';
+import '../services/network_user_service.dart';
 import 'share_profile.dart';
 
-class SettingsPage extends StatefulWidget {
+class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
 
   @override
-  State<SettingsPage> createState() => _SettingsPageState();
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
+class _SettingsPageState extends ConsumerState<SettingsPage> {
   final TextEditingController _controller = TextEditingController();
   final getIt = GetIt.instance;
 
-  bool _isEdit = false;
-  bool _isAvatar = false;
-  String? _avatarURL;
-  String _displayName = 'no_name';
-  String _id = '';
-  Position? _position;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUser();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  _loadUser() {
-    app_user.User user = getIt<NetworkUserService>().getCurrentUser();
-
-    if (user.photoUrl != null) {
-      setState(() {
-        _isAvatar = true;
-        _avatarURL = user.photoUrl;
-      });
-    }
-    _displayName = user.displayName;
-    _id = user.id;
-    _controller.text = _displayName;
-  }
-
   void _edit() {
-    setState(() {
-      _isEdit = true;
-    });
+    ref.read(settingsNotifierProvider.notifier).setIsEdit(true);
   }
 
   void _done() async {
-    await getIt<NetworkUserService>().updateUserDisplayName(_controller.text);
+    ref.read(settingsNotifierProvider.notifier).setIsEdit(false);
+    ref
+        .read(settingsNotifierProvider.notifier)
+        .setDisplayName(_controller.text);
 
-    setState(() {
-      _isEdit = false;
-      _displayName = _controller.text;
-    });
+    await getIt<NetworkUserService>().updateUserDisplayName(_controller.text);
   }
 
   void pickImage() async {
@@ -78,9 +45,9 @@ class _SettingsPageState extends State<SettingsPage> {
       return;
     }
 
-    await getIt<NetworkUserService>().updateUserPhotoUrl(image.path, image.name);
-
-    _loadUser();
+    final downloadUrl = await getIt<NetworkUserService>()
+        .updateUserPhotoUrl(image.path, image.name);
+    ref.read(settingsNotifierProvider.notifier).setAvatarURL(downloadUrl);
   }
 
   Future<void> _signOut() async {
@@ -92,7 +59,7 @@ class _SettingsPageState extends State<SettingsPage> {
     Navigator.pushNamed(
       context,
       ShareProfile.routeName,
-      arguments: ShareArguments(_id),
+      arguments: ShareArguments(ref.read(settingsNotifierProvider).id),
     );
   }
 
@@ -119,13 +86,27 @@ class _SettingsPageState extends State<SettingsPage> {
     }
 
     final position = await Geolocator.getCurrentPosition();
-    setState(() {
-      _position = position;
-    });
+    ref.read(settingsNotifierProvider.notifier).setPosition(position);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    bool _isEdit = ref
+        .watch(settingsNotifierProvider.select((settings) => settings.isEdit));
+    String? _avatarURL = ref.watch(
+        settingsNotifierProvider.select((settings) => settings.avatarURL));
+    String _displayName = ref.watch(
+        settingsNotifierProvider.select((settings) => settings.displayName));
+    _controller.text = _displayName;
+    Position? _position = ref.watch(
+        settingsNotifierProvider.select((settings) => settings.position));
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -143,13 +124,10 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
             GestureDetector(
               onTap: pickImage,
-              child: CircleAvatar(
-                radius: 32.0,
-                backgroundImage: (_isAvatar && _avatarURL != null)
-                    ? NetworkImage(_avatarURL!) as ImageProvider<Object>
-                    : const AssetImage('assets/images/avatar.png'),
-                backgroundColor: Colors.transparent,
-              ),
+              child: UserAvatar(
+                  displayName: _displayName,
+                  avatarUrl: _avatarURL,
+                  isShowDefaultAvatar: true),
             ),
             const SizedBox(
               height: 16.0,

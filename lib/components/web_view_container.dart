@@ -21,6 +21,7 @@ class _WebViewContainerState extends State<WebViewContainer> {
     return Scaffold(
       appBar: AppBar(),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
               child: WebViewWidget(

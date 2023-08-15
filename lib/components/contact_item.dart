@@ -1,6 +1,9 @@
-import 'package:chat_app/components/shimmer-loading.dart';
-import 'package:chat_app/models/user.dart';
 import 'package:flutter/material.dart';
+
+import '../components/shimmer-loading.dart';
+import '../models/user.dart';
+import '../pages/contact_page.dart';
+import 'user_avatar.dart';
 
 class ContactItem extends StatelessWidget {
   final bool isShimmer;
@@ -11,17 +14,13 @@ class ContactItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget leading;
     if (user == null) {
       return ShimmerLoading(
           isLoading: true,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: ListTile(
-              leading: const CircleAvatar(
-                radius: 32.0,
-                backgroundColor: Color(0xffe1e1e1),
-              ),
+              leading: const UserAvatar(isShimmer: true),
               title: AspectRatio(
                 aspectRatio: 16 / 1,
                 child: Container(
@@ -36,31 +35,18 @@ class ContactItem extends StatelessWidget {
           ));
     }
 
-    if (user!.photoUrl == null) {
-      final String abbr = user!.displayName
-          .split(' ')
-          .map((String e) => e[0].toUpperCase())
-          .take(2)
-          .join('');
-      leading = CircleAvatar(
-        radius: 32.0,
-        backgroundColor: Colors.transparent,
-        child: Text(abbr),
-      );
-    } else {
-      leading = CircleAvatar(
-        radius: 32.0,
-        backgroundImage: NetworkImage(user!.photoUrl!),
-        backgroundColor: Colors.transparent,
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: ListTile(
-        leading: leading,
-        title: Text(user!.displayName),
-      ),
-    );
+    return GestureDetector(
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: ListTile(
+            leading: UserAvatar(
+                displayName: user!.displayName, avatarUrl: user!.photoUrl),
+            title: Text(user!.displayName),
+          ),
+        ),
+        onTap: () {
+          Navigator.pushNamed(context, ContactPage.routeName,
+              arguments: ContactArguments(user!.id));
+        });
   }
 }

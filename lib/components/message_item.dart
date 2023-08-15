@@ -1,15 +1,20 @@
-import 'package:chat_app/components/shimmer-loading.dart';
 import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:string_to_hex/string_to_hex.dart';
 
+import '../components/shimmer-loading.dart';
 import '../models/message.dart';
 
 class MessageItem extends StatelessWidget {
+  final bool isSelfMessage;
   final bool isShimmer;
   final Message? message;
 
-  const MessageItem({this.message, this.isShimmer = false, Key? key})
+  const MessageItem(
+      {this.message,
+      this.isShimmer = false,
+      this.isSelfMessage = false,
+      Key? key})
       : super(key: key);
 
   @override
@@ -65,15 +70,19 @@ class MessageItem extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 16.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            isSelfMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment:
+                isSelfMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
             children: [
               Text(
                 message!.userId.substring(0, 8),
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Color(StringToHex.toColor(StringToHex.toHexString(message!.userId.substring(0, 6))))),
+                    color: Color(StringToHex.toColor(StringToHex.toHexString(
+                        message!.userId.substring(0, 6))))),
               ),
               const SizedBox(
                 width: 6.0,

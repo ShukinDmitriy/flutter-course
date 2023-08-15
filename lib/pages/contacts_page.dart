@@ -1,51 +1,107 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
 
+import '../components/add_contact_button.dart';
 import '../components/shimmer.dart';
 import '../components/contact_item.dart';
-import '../data/repositories/user_repository.dart';
-import '../models/user.dart';
+import '../notifiers/async_users_notifier.dart';
+import '../services/network_user_service.dart';
 
-class ContactsPage extends StatefulWidget {
-  const ContactsPage({Key? key}) : super(key: key);
+class ContactsPage extends ConsumerStatefulWidget {
+  const ContactsPage({super.key});
 
   @override
-  State<ContactsPage> createState() => _ContactsPageState();
+  ConsumerState<ContactsPage> createState() => _ContactsPageState();
 }
 
-class _ContactsPageState extends State<ContactsPage> {
-  final getIt = GetIt.instance;
+class _ContactsPageState extends ConsumerState<ContactsPage> {
+  final inputController = TextEditingController();
+  final userService = GetIt.instance<NetworkUserService>();
+
+  @override
+  void dispose() {
+    inputController.dispose();
+    super.dispose();
+  }
+
+  onAddedContact(result) {
+    Timer(const Duration(milliseconds: 10), () {
+      ref.read(asyncUsersNotifierProvider.notifier).loadUsers();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Contacts'),
-      ),
-      body: StreamBuilder(
-          stream: getIt<UserRepository>().getUsers().asStream(),
-          initialData: [],
-          builder: (ctx, snapshot) {
-            final userList = snapshot.data;
+    final asyncUsers = ref.watch(asyncUsersNotifierProvider);
 
-            if (userList != null && userList.isNotEmpty) {
-              return ListView.builder(
-                  itemCount: userList.length,
-                  itemBuilder: (context, index) {
-                    final User currentUser = userList[index];
-
-                    return ContactItem(user: currentUser);
-                  });
-            } else {
-              return Shimmer(
+    return asyncUsers.when(data: (userList) {
+      if (userList.isNotEmpty) {
+        return Scaffold(
+          key: const ValueKey('userList'),
+          appBar: AppBar(
+            title: const Text('Contacts'),
+          ),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
                 child: ListView.builder(
-                    itemCount: 3,
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    itemCount: userList.length,
                     itemBuilder: (context, index) {
-                      return const ContactItem(isShimmer: true);
+                      final currentUser = userList[index];
+                      return ContactItem(user: currentUser);
                     }),
-              );
-            }
-          }),
-    );
+              ),
+              AddContactButton(
+                onAddedContact: onAddedContact,
+              ),
+            ],
+          ),
+        );
+      } else {
+        return Scaffold(
+          key: const ValueKey('emptyUserList'),
+          appBar: AppBar(
+            title: const Text('Contacts'),
+          ),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('You don\'t have contacts yet'),
+              AddContactButton(
+                onAddedContact: onAddedContact,
+              ),
+            ],
+          ),
+        );
+      }
+    }, error: (err, stack) {
+      return Scaffold(
+        key: const ValueKey('errorUserList'),
+        appBar: AppBar(
+          title: const Text('Contacts'),
+        ),
+        body: Text('Error: $err'),
+      );
+    }, loading: () {
+      return Scaffold(
+        key: const ValueKey('loadingUserList'),
+        appBar: AppBar(
+          title: const Text('Contacts'),
+        ),
+        body: Shimmer(
+          child: ListView.builder(
+              itemCount: 3,
+              itemBuilder: (context, index) {
+                return const ContactItem(isShimmer: true);
+              }),
+        ),
+      );
+    });
   }
 }
